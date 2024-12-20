@@ -90,7 +90,7 @@ def dp(df, tau, gsq, epsilon, beta):
     noise = np.random.laplace(loc=0.0, scale=b)
     bias = log2_GSQ * np.log(log2_GSQ / beta) * (tau / epsilon)
     dp_result = max_Ui_sum + noise - bias
-    return (max_Ui_sum, dp_result)
+    return (int(max_Ui_sum), int(dp_result))
 
 def billions(x, _):
     return f"{x / 1e9:.2f}B" if x >= 1e9 else f"{x / 1e6:.0f}M"
@@ -119,8 +119,8 @@ def draw_graph(true_result, ui_sum_result, best_dp_result):
     plt.xticks(x_values, labels=[str(i) for i in x_values])
     plt.xlabel(r"$\tau$", fontsize=12)
     plt.gca().yaxis.set_major_formatter(FuncFormatter(billions))
-    plt.ylabel("Values (Billion)", fontsize=12)
-    plt.legend(loc='upper left', fontsize=10)
+    plt.ylabel("Sum of revenue", fontsize=12)
+    plt.legend(loc='best', fontsize=10)
     plt.grid(visible=True, linestyle='--', alpha=0.5)
     plt.tight_layout()
     plt.show()
@@ -134,7 +134,6 @@ def main(gsq = 10**9, epsilon = 1, beta = 0.1, num_round = 10, show_graph = Fals
 
     linear_problems = {}
     tau_list = [2**i for i in range(1, int(np.log2(gsq)))]
-    error_sum = 0
     dp_sum = 0
     
     for tau in tau_list:
@@ -162,7 +161,6 @@ def main(gsq = 10**9, epsilon = 1, beta = 0.1, num_round = 10, show_graph = Fals
 
         highest_dp = max(best_dp_result.values())
         error = true_result - highest_dp
-        error_sum += error
         dp_sum += highest_dp
         print(f"-------------Result (round {r})----------------------")
         print("true result: ", int(true_result))
@@ -171,14 +169,16 @@ def main(gsq = 10**9, epsilon = 1, beta = 0.1, num_round = 10, show_graph = Fals
         print("result under DP: ", highest_dp)
         print("error: ", error)
         print("-----------------------------------------------------")
-
+        
+    avg_dp_result = round(dp_sum/num_round)
+    avg_error = int(true_result) - avg_dp_result
     print(f"final result (average between {num_round} rounds):")
     print("true result: ", int(true_result))
-    print("error: ", round(error_sum/num_round))
-    print("DP output: ", round(dp_sum/num_round))
+    print("error: ", avg_error)
+    print("DP output: ", avg_dp_result)
     if show_graph:
         draw_graph(int(true_result), ui_sum_result, best_dp_result)
-    return int(true_result), round(error_sum/num_round), round(dp_sum/num_round)
+    return int(true_result), avg_error, avg_dp_result
 
 if __name__ == "__main__":
     main(gsq = 10**9, epsilon = 1, beta = 0.1, num_round = 100, show_graph = True)

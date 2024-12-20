@@ -114,7 +114,7 @@ def draw_graph(true_result, ui_sum_result, best_dp_result):
     plt.xscale('log', base=2)
     plt.xticks(x_values, labels=[str(i) for i in x_values])
     plt.xlabel(r"$\tau$", fontsize=12)
-    plt.ylabel("Value", fontsize=12)
+    plt.ylabel("sum of line item", fontsize=12)
     plt.legend(loc='best', fontsize=10)
     plt.grid(visible=True, linestyle='--', alpha=0.5)
     plt.tight_layout()
@@ -131,7 +131,6 @@ def main(gsq = 10**6, epsilon = 1, beta = 0.1, num_round = 100, show_graph = Fal
     num_rows = len(result)
 
     tau_list = [2**i for i in range(1, int(np.log2(gsq)))]
-    error_sum = 0
     dp_sum = 0
     linear_problems = {}
     for tau in tau_list:
@@ -159,7 +158,6 @@ def main(gsq = 10**6, epsilon = 1, beta = 0.1, num_round = 100, show_graph = Fal
 
         highest_dp = max(best_dp_result.values())
         error = true_result - highest_dp
-        error_sum += error
         dp_sum += highest_dp
         print(f"-------------Result (round {r})----------------------")
         print("true result: ", int(true_result))
@@ -168,14 +166,16 @@ def main(gsq = 10**6, epsilon = 1, beta = 0.1, num_round = 100, show_graph = Fal
         print("result under DP: ", highest_dp)
         print("error: ", error)
         print("-----------------------------------------------------")
-        
+    
+    avg_dp_result = round(dp_sum/num_round)
+    avg_error = int(true_result) - avg_dp_result
     print(f"final result (average between {num_round} rounds):")
     print("true result: ", int(true_result))
-    print("error: ", round(error_sum/num_round))
-    print("DP output: ", round(dp_sum/num_round))
+    print("error: ", avg_error)
+    print("DP output: ", avg_dp_result)
     if show_graph:
         draw_graph(int(true_result), ui_sum_result, best_dp_result)
-    return int(true_result), round(error_sum/num_round), round(dp_sum/num_round)
+    return int(true_result), avg_error, avg_dp_result
 
 if __name__ == "__main__":
     main(gsq = 10**6, epsilon = 1, beta = 0.1, num_round = 100, show_graph = True)
